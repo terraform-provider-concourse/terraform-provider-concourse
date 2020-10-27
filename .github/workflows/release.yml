@@ -48,6 +48,10 @@ jobs:
       matrix:
         goos: [ "linux", "darwin" ]
     steps:
+      - name: get-tag-name
+        id: get-tag-name
+        run: echo ::set-output tag-name=${GITHUB_REF/refs\/tags\//}
+
       - name: setup
         uses: actions/setup-go@v2
         with:
@@ -59,8 +63,8 @@ jobs:
       - name: compile
         id: compile
         env:
-          BINARY_NAME: terraform-provider-concourse_${{ github.ref }}
-          ZIP_NAME: terraform-provider-concourse_${{ github.ref }}_${{ matrix.goos }}_amd64.zip
+          BINARY_NAME: terraform-provider-concourse_${{ steps.get-tag-name.outputs.tag-name }}
+          ZIP_NAME: terraform-provider-concourse_${{ steps.get-tag-name.outputs.tag-name }}_${{ matrix.goos }}_amd64.zip
         run: |
           GOOS="${{ matrix.goos }}" make
           mv terraform-provider-concourse $BINARY_NAME
