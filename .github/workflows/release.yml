@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        goos: [ "" ]
+        goos: [ "linux", "darwin" ]
     steps:
       - name: setup
         uses: actions/setup-go@v2
@@ -41,4 +41,4 @@ jobs:
         uses: actions/checkout@v1
 
       - name: compile
-        run: GOOS="${{ goos }}" make
+        run: GOOS="${{ matrix.goos }}" make
