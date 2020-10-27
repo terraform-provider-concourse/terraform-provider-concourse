@@ -58,9 +58,6 @@ jobs:
 
       - name: compile
         id: compile
-        outputs:
-          zip_name:
-            description: zip filename
         env:
           BINARY_NAME: terraform-provider-concourse_${{ github.ref }}
           ZIP_NAME: terraform-provider-concourse_${{ github.ref }}_${{ matrix.goos }}_amd64.zip
