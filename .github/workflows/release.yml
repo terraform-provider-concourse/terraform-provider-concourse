@@ -6,7 +6,7 @@ on:
 
 jobs:
 
-  build:  # this is cloned from ci.yml until github actions support job reuse
+  test:  # this is cloned from ci.yml until github actions support job reuse
     name: test
     runs-on: ubuntu-latest
     steps:
