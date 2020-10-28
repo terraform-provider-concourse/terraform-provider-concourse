@@ -96,13 +96,19 @@ jobs:
           cp artifacts/*.zip/*.zip gathered/
           pushd gathered
           sha256sum *.zip > $HASH_FILE_NAME
-          echo "::set-output name=hash_file_name::$HASH_FILE_NAME"
+          # TODO sign
           popd
+          find gathered/ -printf '%f\0' | jq --raw-input --slurp 'split("\0")' > all_artifacts.json
+          echo "::set-output name=hash_file_name::$HASH_FILE_NAME"
+          echo -n "::set-output name=all_artifacts_json::"
+          cat all_artifacts.json
       - id: upload-hash-file-artifact
         uses: actions/upload-artifact@v2
         with:
           name: ${{ steps.gather-and-hash.outputs.hash_file_name }}
           path: ./gathered/${{ steps.gather-and-hash.outputs.hash_file_name }}
+    outputs:
+      all_artifacts_json: ${{ steps.gather-and-hash.outputs.all_artifacts_json }}
         
           
       
