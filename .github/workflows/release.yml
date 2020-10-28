@@ -97,11 +97,12 @@ jobs:
           pushd gathered
           sha256sum *.zip > $HASH_FILE_NAME
           echo "::set-output name=hash_file_name::$HASH_FILE_NAME"
+          popd
       - id: upload-hash-file-artifact
         uses: actions/upload-artifact@v2
         with:
           name: ${{ steps.gather-and-hash.outputs.hash_file_name }}
-          path: ./${{ steps.gather-and-hash.outputs.hash_file_name }}
+          path: ./gathered/${{ steps.gather-and-hash.outputs.hash_file_name }}
         
           
       
