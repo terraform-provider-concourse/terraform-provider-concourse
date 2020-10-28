@@ -24,26 +24,26 @@ jobs:
       - name: integration-tests
         run: sudo make integration-tests
 
-  create-release:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: create-release
-        id: create-release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          body: A dummy release
-          draft: true
-    outputs:
-      release_upload_url: ${{ steps.create-release.outputs.upload_url }}
+  #create-release:
+    #runs-on: ubuntu-latest
+    #needs: test
+    #steps:
+      #- name: create-release
+        #id: create-release
+        #uses: actions/create-release@v1
+        #env:
+          #GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        #with:
+          #tag_name: ${{ github.ref }}
+          #release_name: ${{ github.ref }}
+          #body: A dummy release
+          #draft: true
+    #outputs:
+      #release_upload_url: ${{ steps.create-release.outputs.upload_url }}
 
   build:
     runs-on: ubuntu-latest
-    needs: create-release
+    needs: test
     strategy:
       matrix:
         goos: [ "linux", "darwin" ]
@@ -72,11 +72,17 @@ jobs:
           echo "::set-output name=zip_name::$ZIP_NAME"
 
       - name: upload
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions/upload-artifact@v2
         with:
-          upload_url: ${{ needs.create-release.outputs.release_upload_url }}
-          asset_path: ./${{ steps.compile.outputs.zip_name }}
-          asset_name: ${{ steps.compile.outputs.zip_name }}
-          asset_content_type: application/zip
+          name: ${{ steps.compile.outputs.zip_name }}
+          path: ./${{ steps.compile.outputs.zip_name }}
+        
+        #with:
+          #upload_url: ${{ needs.create-release.outputs.release_upload_url }}
+          #asset_path: ./${{ steps.compile.outputs.zip_name }}
+          #asset_name: ${{ steps.compile.outputs.zip_name }}
+          #asset_content_type: application/zip
+
+  #sign:
+    #runs-on: ubuntu-latest
+    #needs: build
