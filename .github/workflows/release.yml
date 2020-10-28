@@ -14,15 +14,15 @@ jobs:
         with:
           go-version: '1.14'
 
-      - name: checkout
-        uses: actions/checkout@v1
+      #- name: checkout
+        #uses: actions/checkout@v1
 
-      - name: ensure-containers-exist
-        run: |
-          docker-compose up -d && docker-compose down
+      #- name: ensure-containers-exist
+        #run: |
+          #docker-compose up -d && docker-compose down
 
-      - name: integration-tests
-        run: sudo make integration-tests
+      #- name: integration-tests
+        #run: sudo make integration-tests
 
   get-tag-name:
     runs-on: ubuntu-latest
