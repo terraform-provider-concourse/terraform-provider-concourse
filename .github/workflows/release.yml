@@ -40,18 +40,21 @@ jobs:
           #draft: true
     #outputs:
       #release_upload_url: ${{ steps.create-release.outputs.upload_url }}
+  get-tag-name:
+    runs-on: ubuntu-latest
+    steps:
+      - id: get-tag-name-step
+        run: echo "::set-output name=tag_name::${GITHUB_REF/refs\/tags\//}"
+    outputs:
+      tag_name: ${{ steps.get-tag-name-step.outputs.tag_name }}
 
   build:
     runs-on: ubuntu-latest
-    needs: test
+    needs: [ "test", "get-tag-name" ]
     strategy:
       matrix:
         goos: [ "linux", "darwin" ]
     steps:
-      - name: get-tag-name
-        id: get-tag-name
-        run: echo ::set-output name=tag_name::${GITHUB_REF/refs\/tags\//}
-
       - name: setup
         uses: actions/setup-go@v2
         with:
@@ -63,26 +66,48 @@ jobs:
       - name: compile
         id: compile
         env:
-          BINARY_NAME: terraform-provider-concourse_${{ steps.get-tag-name.outputs.tag_name }}
-          ZIP_NAME: terraform-provider-concourse_${{ steps.get-tag-name.outputs.tag_name }}_${{ matrix.goos }}_amd64.zip
+          BINARY_NAME: terraform-provider-concourse_${{ needs.get-tag-name.outputs.tag_name }}
+          ZIP_NAME: terraform-provider-concourse_${{ needs.get-tag-name.outputs.tag_name }}_${{ matrix.goos }}_amd64.zip
         run: |
           GOOS="${{ matrix.goos }}" make
           mv terraform-provider-concourse $BINARY_NAME
           zip $ZIP_NAME $BINARY_NAME
           echo "::set-output name=zip_name::$ZIP_NAME"
 
-      - name: upload
+      - id: upload-artifact
         uses: actions/upload-artifact@v2
         with:
           name: ${{ steps.compile.outputs.zip_name }}
           path: ./${{ steps.compile.outputs.zip_name }}
+
+  sign:
+    runs-on: ubuntu-latest
+    needs: [ "build", "get-tag-name" ]
+    steps:
+      - id: download-artifacts
+        uses: actions/download-artifact@v2
+        with:
+          path: artifacts/
+      - id: gather-and-hash
+        env:
+          HASH_FILE_NAME: terraform-provider-concourse_${{ needs.get-tag-name.outputs.tag_name }}_SHA256SUMS
+        run: |
+          mkdir gathered
+          cp artifacts/*.zip/*.zip gathered/
+          pushd gathered
+          sha256sum *.zip > $HASH_FILE_NAME
+          echo "::set-output name=hash_file_name::$HASH_FILE_NAME"
+      - id: upload-hash-file-artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ steps.gather-and-hash.outputs.hash_file_name }}
+          path: ./${{ steps.gather-and-hash.outputs.hash_file_name }}
+        
+          
+      
         
         #with:
           #upload_url: ${{ needs.create-release.outputs.release_upload_url }}
           #asset_path: ./${{ steps.compile.outputs.zip_name }}
           #asset_name: ${{ steps.compile.outputs.zip_name }}
           #asset_content_type: application/zip
-
-  #sign:
-    #runs-on: ubuntu-latest
-    #needs: build
