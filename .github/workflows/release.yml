@@ -84,11 +84,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: [ "build", "get-tag-name" ]
     steps:
-      - id: download-artifacts
+      - name: download-artifacts
+        id: download-artifacts
         uses: actions/download-artifact@v2
         with:
           path: artifacts/
-      - id: gather-and-hash
+      - name: gather-and-hash
+        id: gather-and-hash
         env:
           HASH_FILE_NAME: terraform-provider-concourse_${{ needs.get-tag-name.outputs.tag_name }}_SHA256SUMS
         run: |
@@ -98,11 +100,12 @@ jobs:
           sha256sum *.zip > $HASH_FILE_NAME
           # TODO sign
           popd
-          find gathered/ -type f -printf '%f\n' | jq --raw-input --slurp 'split("\n")' > all_artifacts.json
+          find gathered/ -type f -printf '%f\n' | jq --raw-input -c --slurp '.[:-1] | split("\n")' > all_artifacts.json
           echo "::set-output name=hash_file_name::$HASH_FILE_NAME"
           echo -n "::set-output name=all_artifacts_json::"
           cat all_artifacts.json
-      - id: upload-hash-file-artifact
+      - name: upload-hash-file-artifact
+        id: upload-hash-file-artifact
         uses: actions/upload-artifact@v2
         with:
           name: ${{ steps.gather-and-hash.outputs.hash_file_name }}
