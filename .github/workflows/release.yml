@@ -72,8 +72,8 @@ jobs:
         id: import-gpg-key
         uses: paultyng/ghaction-import-gpg@v2.1.0
         env:
-          GPG_PRIVATE_KEY: ""
-          PASSPHRASE: ""
+          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+          PASSPHRASE: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
       - name: download-artifacts
         id: download-artifacts
         uses: actions/download-artifact@v2
