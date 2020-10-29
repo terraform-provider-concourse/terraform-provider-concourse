@@ -141,11 +141,13 @@ jobs:
 
       - name: determine-content-type
         id: determine-content-type
+        env:
+          ARTIFACT_NAME: ${{ matrix.artifact }}
         run: |
           echo -n '::set-output name=content_type::'
-          if [[ ${${{ matrix.artifact }}##*.} = 'zip' ]] ; then
+          if [[ ${ARTIFACT_NAME##*.} = 'zip' ]] ; then
             echo 'application/zip'
-          elif [[ ${${{ matrix.artifact }}##*.} = 'sig' ]] ; then
+          elif [[ ${ARTIFACT_NAME##*.} = 'sig' ]] ; then
             echo 'application/pgp-signature'
           else
             echo 'text/plain'
