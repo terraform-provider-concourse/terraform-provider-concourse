@@ -38,6 +38,10 @@ jobs:
     strategy:
       matrix:
         goos: [ "linux", "darwin" ]
+        goarch: [ "amd64", "arm64" ]
+        include:
+          - goos: linux
+            goarch: '386'
     steps:
       - name: setup
         uses: actions/setup-go@v2
@@ -51,9 +55,9 @@ jobs:
         id: compile
         env:
           BINARY_NAME: terraform-provider-concourse_${{ needs.get-tag-name.outputs.tag_name }}
-          ZIP_NAME: terraform-provider-concourse_${{ needs.get-tag-name.outputs.tag_name }}_${{ matrix.goos }}_amd64.zip
+          ZIP_NAME: terraform-provider-concourse_${{ needs.get-tag-name.outputs.tag_name }}_${{ matrix.goos }}_${{ matrix.goarch }}.zip
         run: |
-          GOOS="${{ matrix.goos }}" make
+          GOOS="${{ matrix.goos }}" GOARCH="${{ matrix.goarch }}" make
           mv terraform-provider-concourse $BINARY_NAME
           zip $ZIP_NAME $BINARY_NAME
           echo "::set-output name=zip_name::$ZIP_NAME"
