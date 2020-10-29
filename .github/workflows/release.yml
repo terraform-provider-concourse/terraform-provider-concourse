@@ -100,6 +100,12 @@ jobs:
         with:
           name: ${{ steps.gather-and-hash.outputs.hash_file_name }}
           path: ./gathered/${{ steps.gather-and-hash.outputs.hash_file_name }}
+      - name: upload-signature-artifact
+        id: upload-signature-artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ steps.gather-and-hash.outputs.hash_file_name }}.sig
+          path: ./gathered/${{ steps.gather-and-hash.outputs.hash_file_name }}.sig
     outputs:
       all_artifacts_json: ${{ steps.gather-and-hash.outputs.all_artifacts_json }}
 
