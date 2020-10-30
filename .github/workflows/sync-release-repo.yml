@@ -13,7 +13,7 @@ jobs:
     - name: repo-sync
       uses: wei/git-sync@v2
       with:
-        source_repo: ""
+        source_repo: "https://github.com/${{ github.repository }}.git"
         source_branch: ${{ github.ref }}
         destination_repo: "git@github.com:terraform-provider-concourse/terraform-provider-concourse.git"
         destination_branch: ${{ github.ref }}
