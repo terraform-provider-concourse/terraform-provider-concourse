@@ -76,6 +76,9 @@ func resourceTeam() *schema.Resource {
 		Read:   resourceTeamRead,
 		Update: resourceTeamUpdate,
 		Delete: resourceTeamDelete,
+		Importer: &schema.ResourceImporter{
+			State: schema.ImportStatePassthrough,
+		},
 
 		Schema: map[string]*schema.Schema{
 
@@ -136,7 +139,7 @@ func resourceTeam() *schema.Resource {
 		SchemaVersion: 1,
 		StateUpgraders: []schema.StateUpgrader{
 			{
-				Type: resourceTeamResourceV0().CoreConfigSchema().ImpliedType(),
+				Type:    resourceTeamResourceV0().CoreConfigSchema().ImpliedType(),
 				Upgrade: resourceTeamStateUpgradeV0,
 				Version: 0,
 			},
