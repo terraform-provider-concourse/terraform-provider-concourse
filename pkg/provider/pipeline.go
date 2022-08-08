@@ -12,6 +12,17 @@ import (
 func dataPipeline() *schema.Resource {
 	return &schema.Resource{
 		Read: dataPipelineRead,
+		Importer: &schema.ResourceImporter{
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				teamName, pipelineName, err := parseTwoPartID(d.Id(), "team_name", "pipeline_name")
+				if err != nil {
+					return []*schema.ResourceData{d}, err
+				}
+				d.Set("team_name", teamName)
+				d.Set("pipeline_name", pipelineName)
+				return []*schema.ResourceData{d}, nil
+			},
+		},
 
 		Schema: map[string]*schema.Schema{
 			"pipeline_name": &schema.Schema{
@@ -414,4 +425,14 @@ func resourcePipelineDelete(d *schema.ResourceData, m interface{}) error {
 
 	d.SetId("")
 	return nil
+}
+
+// return the pieces of id `left:right` as left, right
+func parseTwoPartID(id, left, right string) (string, string, error) {
+	parts := strings.SplitN(id, ":", 2)
+	if len(parts) != 2 {
+		return "", "", fmt.Errorf("Unexpected ID format (%q). Expected %s:%s", id, left, right)
+	}
+
+	return parts[0], parts[1], nil
 }
