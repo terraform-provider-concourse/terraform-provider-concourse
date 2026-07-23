@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/concourse/concourse/atc"
@@ -9,6 +10,28 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
+
+// validateAuthEntry rejects entries that don't start with "user:" or "group:"
+// at plan time, before any API call is made.
+//
+// Valid examples:
+//   - "user:local:admin"           — local Concourse user
+//   - "user:github:tlwr"           — GitHub user
+//   - "group:saml:platform-owners" — SAML group (e.g. Keycloak/Okta)
+//   - "group:github:org:team"      — GitHub team
+func validateAuthEntry(v interface{}, k string) (warnings []string, errors []error) {
+	value := v.(string)
+	parts := strings.SplitN(value, ":", 2)
+	if len(parts) < 2 || (parts[0] != "user" && parts[0] != "group") {
+		errors = append(errors, fmt.Errorf(
+			"%q: invalid auth entry %q — must start with \"user:\" or \"group:\". "+
+				"For SAML groups use \"group:saml:<group-name>\", "+
+				"for GitHub teams use \"group:github:<org>:<team>\"",
+			k, value,
+		))
+	}
+	return warnings, errors
+}
 
 var roleNames = []string{
 	"owner",
@@ -96,7 +119,8 @@ func resourceTeam() *schema.Resource {
 					return make([]string, 0), nil
 				},
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validateAuthEntry,
 				},
 			},
 
@@ -108,7 +132,8 @@ func resourceTeam() *schema.Resource {
 					return make([]string, 0), nil
 				},
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validateAuthEntry,
 				},
 			},
 
@@ -120,7 +145,8 @@ func resourceTeam() *schema.Resource {
 					return make([]string, 0), nil
 				},
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validateAuthEntry,
 				},
 			},
 
@@ -132,7 +158,8 @@ func resourceTeam() *schema.Resource {
 					return make([]string, 0), nil
 				},
 				Elem: &schema.Schema{
-					Type: schema.TypeString,
+					Type:         schema.TypeString,
+					ValidateFunc: validateAuthEntry,
 				},
 			},
 		},
@@ -284,6 +311,13 @@ func resourceTeamCreateUpdate(ctx context.Context, d *schema.ResourceData, m int
 				auths[role+"_users"] = append(auths[role+"_users"], strings.Join(authline[1:], ":"))
 			case "group":
 				auths[role+"_groups"] = append(auths[role+"_groups"], strings.Join(authline[1:], ":"))
+			default:
+				return diag.Errorf(
+					"invalid auth entry %q in role %q: must start with \"user:\" or \"group:\". "+
+						"For SAML groups use \"group:saml:<group-name>\", "+
+						"for GitHub teams use \"group:github:<org>:<team>\".",
+					terraformInput.(string), role,
+				)
 			}
 		}
 	}
