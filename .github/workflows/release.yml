@@ -107,12 +107,10 @@ jobs:
     steps:
       - name: create-release
         id: create-release
-        uses: actions/create-release@0cb9c9b65d5d1901c1f53e5e66eaf4afd303e70e # actions/create-release@v1.1.4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@b5a645e6d7f681d09866ab86ba7918b222989555
         with:
+          name: ${{ github.ref_name }}
           tag_name: ${{ github.ref_name }}
-          release_name: ${{ github.ref_name }}
     outputs:
       release_upload_url: ${{ steps.create-release.outputs.upload_url }}
 
