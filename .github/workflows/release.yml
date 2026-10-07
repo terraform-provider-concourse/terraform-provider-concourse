@@ -16,12 +16,8 @@ jobs:
     steps:
       - id: get-tag-name-step
         run: |
-          export TAG_NAME="${GITHUB_REF/refs\/tags\//}"
-          export RAW_VERSION="${TAG_NAME##v}"
-          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
-          echo "raw_version=${RAW_VERSION}" >> $GITHUB_OUTPUT
+          echo "raw_version=${GITHUB_REF_NAME##v}" >> $GITHUB_OUTPUT
     outputs:
-      tag_name: ${{ steps.get-tag-name-step.outputs.tag_name }}
       raw_version: ${{ steps.get-tag-name-step.outputs.raw_version }}
 
   build:
@@ -112,8 +108,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
+          tag_name: ${{ github.ref_name }}
+          release_name: ${{ github.ref_name }}
     outputs:
       release_upload_url: ${{ steps.create-release.outputs.upload_url }}
 
